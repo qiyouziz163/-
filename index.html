@@ -748,7 +748,7 @@
                         new Paragraph({ children: [ new TextRun('邮政 编 码: '), new TextRun({ text: tmData.邮政编码, underline: { type: UnderlineType.SINGLE }, font: BODY_FONT, size: BODY_SIZE }) ] })
                     ]});
                     let rightCell = new TableCell({ children: [
-                        new Paragraph({ children: [ new TextRun({ text: '   委托人章戳: ', bold: true, color: 'FF0000', font: BODY_FONT, size: BODY_SIZE }), new TextRun({ text: '____________________', bold: true, font: BODY_FONT, size: BODY_SIZE }) ] }),
+                        new Paragraph({ children: [ new TextRun({ text: '          委托人章戳: ', bold: true, color: 'FF0000', font: BODY_FONT, size: BODY_SIZE }), new TextRun({ text: '____________________', bold: true, font: BODY_FONT, size: BODY_SIZE }) ] }),
                         new Paragraph({ alignment: AlignmentType.RIGHT, children: [ new TextRun({ text: tmData.签章日期, underline: { type: UnderlineType.SINGLE }, font: BODY_FONT, size: BODY_SIZE }) ] })
                     ]});
                     let signatureTable = new Table({
