@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>企优咨 · 内部办公系统 (转让证明优化)</title>
+    <!-- 引入 docx 库 -->
+    <script src="https://cdn.jsdelivr.net/npm/docx@7.8.2/build/index.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+        }
+        body {
+            background: #f0f2f5;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 12px;
+        }
+        #app {
+            width: 100%;
+            max-width: 1600px;
+            height: 100%;
+            background: white;
+            border-radius: 32px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            backdrop-filter: blur(2px);
+        }
+        .app-header {
+            background: #1e2b3c;
+            color: white;
+            padding: 18px 28px;
+            font-size: 1.6rem;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #2d3f50;
+            display: flex;
+            align-items: center;
+        }
+        .app-header::before {
+            content: "⚖️";
+            margin-right: 12px;
+            font-size: 2rem;
+        }
+        .main-layout {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            background: #f9fafc;
+        }
+        .left-nav {
+            width: 240px;
+            background: white;
+            border-right: 1px solid #e6e9f0;
+            padding: 24px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.02);
+        }
+        .nav-item {
+            padding: 16px 24px;
+            margin: 0 12px;
+            border-radius: 14px;
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #2c3e50;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .nav-item i { font-style: normal; font-size: 1.4rem; }
+        .nav-item:hover { background: #f0f4fe; color: #1e4f8a; }
+        .nav-item.active {
+            background: #1e4f8a;
+            color: white;
+            box-shadow: 0 6px 12px rgba(30,79,138,0.2);
+        }
+        .right-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: #f9fafc;
+        }
+        .sub-tabs {
+            display: flex;
+            background: white;
+            padding: 0 28px;
+            border-bottom: 1px solid #eef2f6;
+            gap: 32px;
+        }
+        .sub-tab {
+            padding: 18px 8px 14px;
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #6b7a8d;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: 0.15s;
+        }
+        .sub-tab.active {
+            color: #1e4f8a;
+            border-bottom-color: #1e4f8a;
+        }
+        .panel-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px 28px;
+            background: #f9fafc;
+        }
+        .form-panel, .preview-panel {
+            width: 100%;
+            height: 100%;
+        }
+        .preview-panel {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.02);
+            padding: 28px 24px;
+            overflow-y: auto;
+            border: 1px solid #edf2f7;
+        }
+        .form-card {
+            background: white;
+            border-radius: 28px;
+            padding: 28px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.02);
+            border: 1px solid #edf2f7;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px,1fr));
+            gap: 20px 28px;
+        }
+        .field-label {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #44566c;
+            margin-bottom: 6px;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #d9e0e8;
+            border-radius: 16px;
+            font-size: 0.95rem;
+            background: white;
+            transition: 0.15s;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #1e4f8a;
+            box-shadow: 0 0 0 3px rgba(30,79,138,0.1);
+        }
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px 28px;
+            border: 1px solid #eef2f6;
+            padding: 20px;
+            border-radius: 20px;
+            background: #fbfdff;
+        }
+        .checkbox-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            width: calc(50% - 20px);
+            font-weight: normal;
+            transition: font-weight 0.1s;
+            line-height: 1.4;
+        }
+        .checkbox-item.checked {
+            font-weight: 700;
+        }
+        .checkbox-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #1e4f8a;
+            margin-top: 3px;
+            flex-shrink: 0;
+        }
+        .other-input {
+            margin-left: 26px;
+            margin-top: 8px;
+            width: calc(100% - 26px);
+        }
+        .btn {
+            background: #1e4f8a;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.15s;
+            box-shadow: 0 8px 14px rgba(30,79,138,0.2);
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .btn:hover { background: #123b63; transform: translateY(-2px); }
+        .btn:active { transform: translateY(0); }
+        .word-icon::after { content: "📄"; margin-left: 8px; }
+
+        /* 预览样式 */
+        .preview-doc {
+            font-family: 'Times New Roman', Times, serif;
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            line-height: 1.6;
+            color: #1e2b3c;
+            font-size: 16px;
+        }
+        .doc-title {
+            font-size: 1.4rem;
+            font-weight: bold;
+            text-align: center;
+            margin: 0 0 20px 0;
+        }
+        .underline-field {
+            display: inline-block;
+            font-weight: 700;
+            text-decoration: underline;
+            padding: 0 2px;
+        }
+        .signature-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 40px;
+            border: 1px solid #a0b8cc;
+        }
+        .signature-table td {
+            border: 1px solid #a0b8cc;
+            padding: 12px 16px;
+        }
+        .selected-item {
+            font-weight: 700;
+            text-decoration: underline;
+        }
+        .red-bold {
+            font-weight: 700;
+            color: red;
+        }
+        /* 多商标条目样式 */
+        .other-tm-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+            background: #f5f8ff;
+            padding: 10px 15px;
+            border-radius: 20px;
+            border: 1px solid #dde3ed;
+        }
+        .other-tm-row input {
+            flex: 1;
+            min-width: 0;
+            background: white;
+        }
+        .other-tm-row .remove-btn {
+            background: #d32f2f;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            width: 32px;
+            height: 32px;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .other-tm-row .remove-btn:hover {
+            background: #b71c1c;
+        }
+        .add-btn {
+            margin-top: 10px;
+            background: #2e7d32;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            padding: 8px 18px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .add-btn:hover {
+            background: #1b5e20;
+        }
+        /* 搜索框样式 */
+        .search-issue {
+            width: 220px;
+            padding: 8px 16px;
+            border-radius: 40px;
+            border: 1px solid #d9e0e8;
+            background: white;
+            font-size: 0.9rem;
+        }
+        .search-issue:focus {
+            border-color: #1e4f8a;
+            box-shadow: 0 0 0 3px rgba(30,79,138,0.1);
+            outline: none;
+        }
+        .total-badge {
+            background: #e9ecf3;
+            padding: 6px 18px;
+            border-radius: 30px;
+            font-weight: 600;
+            color: #1e2b3c;
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="app-header">企优咨 · 内部办公系统</div>
+    <div class="main-layout">
+        <div class="left-nav">
+            <div class="nav-item active" data-module="trademark" id="nav-trademark"><i>™️</i> 商标代理委托书</div>
+            <!-- 商标同意转让证明 -->
+            <div class="nav-item" data-module="assign" id="nav-assign"><i>📜</i> 商标同意转让证明</div>
+            <div class="nav-item" data-module="copyright" id="nav-copyright"><i>©️</i> 国家版权作品登记申请表</div>
+        </div>
+        <div class="right-content" id="right-content">
+            <div class="sub-tabs" id="sub-tabs-container"></div>
+            <div class="panel-container" id="panel-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+    (function() {
+        let currentModule = 'trademark';    // 'trademark', 'copyright', 'assign'
+        let currentSubTab = 'form';
+
+        const identityOptions = ['中国', '中国香港', '中国澳门', '中国台湾', '其它'];
+        const trademarkTypeOptions = ['文字', '图形', '组合', '其它'];
+
+        const trademarkIssuesList = [
+            { label: '商标注册申请', key: 'item1' },
+            { label: '商标异议申请', key: 'item2' },
+            { label: '商标异议答辩', key: 'item3' },
+            { label: '更正商标申请/注册事项申请', key: 'item4' },
+            { label: '变更商标申请人/注册人名义/地址<br>变更集体商标/证明商标管理规则/集体成员名单申请', key: 'item5' },
+            { label: '变更商标代理人/文件接收人申请', key: 'item6' },
+            { label: '删减商品/服务项目申请', key: 'item7' },
+            { label: '商标续展注册申请', key: 'item8' },
+            { label: '转让/移转申请/注册商标申请', key: 'item9' },
+            { label: '商标使用许可备案', key: 'item10' },
+            { label: '变更许可人/被许可人名称备案', key: 'item11' },
+            { label: '商标使用许可提前终止备案', key: 'item12' },
+            { label: '商标专用权质权登记申请', key: 'item13' },
+            { label: '商标专用权质权登记事项变更申请', key: 'item14' },
+            { label: '商标专用权质权登记期限延期申请', key: 'item15' },
+            { label: '商标专用权质权登记证补发申请', key: 'item16' },
+            { label: '商标专用权质权登记注销申请', key: 'item17' },
+            { label: '商标注销申请', key: 'item18' },
+            { label: '撤销连续三年不使用注册商标申请', key: 'item19' },
+            { label: '撤销成为商品/服务通用名称注册商标申请', key: 'item20' },
+            { label: '撤销连续三年不使用注册商标提供证据', key: 'item21' },
+            { label: '撤销成为商品/服务通用名称注册商标答辩', key: 'item22' },
+            { label: '补发变更/转让/续展证明申请', key: 'item23' },
+            { label: '补发商标注册证申请', key: 'item24' },
+            { label: '出具商标注册证明申请', key: 'item25' },
+            { label: '出具优先权证明文件申请', key: 'item26' },
+            { label: '撤回商标注册申请', key: 'item27' },
+            { label: '撤回商标异议申请', key: 'item28' },
+            { label: '撤回变更商标申请人/注册人名义/地址<br>变更集体商标/证明商标管理规则/集体成员名单申请', key: 'item29' },
+            { label: '撤回变更商标代理人/文件接收人申请', key: 'item30' },
+            { label: '撤回删减商品/服务项目申请', key: 'item31' },
+            { label: '撤回商标续展注册申请', key: 'item32' },
+            { label: '撤回转让/移转申请/注册商标申请', key: 'item33' },
+            { label: '撤回商标使用许可备案', key: 'item34' },
+            { label: '撤回商标注销申请', key: 'item35' },
+            { label: '撤回撤销连续三年不使用注册商标申请', key: 'item36' },
+            { label: '撤回撤销成为商品/服务通用名称注册商标申请', key: 'item37' },
+            { label: '其他', key: 'item38' }
+        ];
+
+        function getSystemDate() {
+            const d = new Date();
+            const year = d.getFullYear();
+            const month = (d.getMonth() + 1).toString().padStart(2, '0');
+            const day = d.getDate().toString().padStart(2, '0');
+            return `${year}年${month}月${day}日`;
+        }
+
+        function guessZipFromAddress(address) {
+            if (!address) return '';
+            if (address.includes('北京')) return '100000';
+            if (address.includes('上海')) return '200000';
+            if (address.includes('广州') || address.includes('广东')) return '510000';
+            if (address.includes('深圳')) return '518000';
+            return '510000';
+        }
+
+        // 商标代理数据
+        let tmData = {
+            委托人名称: '陈焕泽',
+            委托人身份: '中国',
+            委托人身份其他: '',
+            代理机构: '企优咨(广州)咨询有限公司',
+            商标类型: '图形',
+            商标类型其他: '',
+            otherTrademarkList: [],
+            事宜: Object.fromEntries(trademarkIssuesList.map(item => [item.key, false])),
+            otherText: '',
+            委托人地址: '广东省广州市天河区智慧城',
+            联系人: '陈焕泽',
+            电话: '13246650235',
+            邮政编码: '510000',
+            签章日期: getSystemDate()
+        };
+        updateZipFromAddress();
+
+        function updateZipFromAddress() {
+            tmData.邮政编码 = guessZipFromAddress(tmData.委托人地址);
+        }
+
+        // 版权数据
+        let cpData = {
+            作品名称: '智慧办公系统',
+            作品类别: '文字',
+            著作权人姓名: '陈焕泽',
+            证件号码: '440101199001011234',
+            国籍: '中国',
+            省份: '广东省',
+            城市: '广州市',
+            创作完成日期: '2025年02月01日',
+            创作完成地点: '广州',
+            发表状态: '已发表',
+            首次发表日期: '2025年02月10日',
+            发表国家: '中国',
+            发表城市: '广州',
+            权利取得方式: '原始',
+            权利归属: '个人作品',
+            创作目的: '内部办公无纸化',
+            创作过程: '自主设计开发',
+            独创性声明: '本作品由本人独立创作完成',
+            美术图片说明: '（示例图片说明）'
+        };
+
+        // ========== 商标同意转让证明数据 ==========
+        // 不再存储日期字段，全部使用系统当前日期
+        let assignData = {
+            assignor: '陈焕泽',
+            assignee: '广州智创科技有限公司',
+            trademarkList: [
+                { regNum: '789456', name: '智汇云', class: '9' },
+                { regNum: '789457', name: '智汇通', class: '42' }
+            ]
+        };
+
+        // 辅助：计算商标总件数
+        function getAssignTotalCount() {
+            return assignData.trademarkList.length;
+        }
+
+        // 导航元素
+        const navTrademark = document.getElementById('nav-trademark');
+        const navAssign = document.getElementById('nav-assign');
+        const navCopyright = document.getElementById('nav-copyright');
+        const subTabsContainer = document.getElementById('sub-tabs-container');
+        const panelContainer = document.getElementById('panel-container');
+
+        function setActiveNav(module) {
+            navTrademark.classList.toggle('active', module === 'trademark');
+            navAssign.classList.toggle('active', module === 'assign');
+            navCopyright.classList.toggle('active', module === 'copyright');
+        }
+
+        function renderSubTabs() {
+            let moduleDisplay = (currentModule === 'copyright') ? '版权' : '商标';
+            subTabsContainer.innerHTML = `
+                <div class="sub-tab ${currentSubTab === 'form' ? 'active' : ''}" data-subtab="form">一、填写${moduleDisplay}相关信息</div>
+                <div class="sub-tab ${currentSubTab === 'preview' ? 'active' : ''}" data-subtab="preview">二、预览页面</div>
+            `;
+            document.querySelectorAll('.sub-tab').forEach(tab => {
+                tab.addEventListener('click', (e) => {
+                    const sub = e.target.dataset.subtab;
+                    if (sub) {
+                        currentSubTab = sub;
+                        renderSubTabs();
+                        renderPanel();
+                    }
+                });
+            });
+        }
+
+        function renderPanel() {
+            if (currentSubTab === 'form') {
+                if (currentModule === 'trademark') panelContainer.innerHTML = renderTrademarkForm();
+                else if (currentModule === 'copyright') panelContainer.innerHTML = renderCopyrightForm();
+                else if (currentModule === 'assign') panelContainer.innerHTML = renderAssignForm();
+                attachFormListeners();
+            } else {
+                let previewHtml = '';
+                if (currentModule === 'trademark') previewHtml = renderTrademarkPreview();
+                else if (currentModule === 'copyright') previewHtml = renderCopyrightPreview();
+                else if (currentModule === 'assign') previewHtml = renderAssignPreview();
+                panelContainer.innerHTML = `<div class="preview-panel">${previewHtml}</div>`;
+                const downloadBtnHtml = `<div style="text-align:right; margin-top:24px;"><button class="btn" id="downloadWordBtn">一键生成Word文件 <span class="word-icon"></span></button></div>`;
+                panelContainer.innerHTML += downloadBtnHtml;
+                document.getElementById('downloadWordBtn')?.addEventListener('click', downloadWord);
+            }
+        }
+
+        // ---------- 商标代理委托书表单 (保留完整功能) ----------
+        function renderTrademarkForm() {
+            let identityOptionsHtml = identityOptions.map(opt => `<option value="${opt}" ${tmData.委托人身份 === opt ? 'selected' : ''}>${opt}</option>`).join('');
+            const showIdentityOther = tmData.委托人身份 === '其它';
+            let typeOptionsHtml = trademarkTypeOptions.map(opt => `<option value="${opt}" ${tmData.商标类型 === opt ? 'selected' : ''}>${opt}</option>`).join('');
+            const showTypeOther = tmData.商标类型 === '其它';
+            let otherTmHtml = '';
+            if (showTypeOther) {
+                if (!tmData.otherTrademarkList || tmData.otherTrademarkList.length === 0) {
+                    tmData.otherTrademarkList = [{ regNum: '', name: '', class: '' }];
+                }
+                let rows = '';
+                tmData.otherTrademarkList.forEach((item, idx) => {
+                    rows += `<div class="other-tm-row" data-index="${idx}"><input type="text" class="other-reg" placeholder="注册号" value="${item.regNum}" data-index="${idx}" data-field="regNum"><input type="text" class="other-name" placeholder="商标名称" value="${item.name}" data-index="${idx}" data-field="name"><input type="text" class="other-class" placeholder="类别" value="${item.class}" data-index="${idx}" data-field="class"><button class="remove-btn" data-index="${idx}" type="button">✕</button></div>`;
+                });
+                otherTmHtml = `<div style="margin-top:20px; border-top:1px dashed #ccc; padding-top:16px;"><div class="field-label">📌 其它商标明细 (第______号 “______” (__类) )</div>${rows}<button class="add-btn" id="addOtherTmBtn" type="button">➕ 添加商标</button></div>`;
+            }
+            let issuesHtml = '';
+            trademarkIssuesList.forEach((item) => {
+                const checked = tmData.事宜[item.key];
+                const checkedClass = checked ? 'checked' : '';
+                issuesHtml += `<div class="checkbox-item ${checkedClass}"><input type="checkbox" data-issue-key="${item.key}" ${checked ? 'checked' : ''}> <span>${item.label.replace(/<br>/g, '<br>')}</span></div>`;
+                if (item.key === 'item38' && checked) {
+                    issuesHtml += `<div class="other-input"><input type="text" id="tm_other_text" placeholder="请填写具体内容" value="${tmData.otherText}"></div>`;
+                }
+            });
+            return `<div class="form-card"><div class="form-grid"><div><div class="field-label">委托人名称</div><input type="text" id="tm_name" value="${tmData.委托人名称}" placeholder="例: 陈焕泽"></div><div><div class="field-label">委托人身份</div><select id="tm_identity">${identityOptionsHtml}</select>${showIdentityOther ? '<input type="text" id="tm_identity_other" style="margin-top:10px;" placeholder="请填写具体身份" value="'+tmData.委托人身份其他+'">' : ''}</div><div><div class="field-label">代理机构</div><input type="text" id="tm_agent" value="${tmData.代理机构}"></div><div><div class="field-label">商标类型</div><select id="tm_type">${typeOptionsHtml}</select></div><div><div class="field-label">委托人地址</div><input type="text" id="tm_addr" value="${tmData.委托人地址}"></div><div><div class="field-label">联系人</div><input type="text" id="tm_contact" value="${tmData.联系人}"></div><div><div class="field-label">电话</div><input type="text" id="tm_phone" value="${tmData.电话}"></div><div><div class="field-label">邮政编码</div><input type="text" id="tm_zip" value="${tmData.邮政编码}" placeholder="根据地址自动填充"></div></div>${otherTmHtml}<div style="display: flex; justify-content: space-between; align-items: center; margin-top:24px;"><div class="field-label" style="margin-bottom:0;">委托事宜 (可多选)</div><input type="text" id="tm_issue_search" class="search-issue" placeholder="搜索事宜..." autocomplete="off"></div><div class="checkbox-group" id="tm-issues-group" style="display: flex; flex-wrap: wrap;">${issuesHtml}</div></div>`;
+        }
+        function renderTrademarkPreview() {
+            let identityDisplay = (tmData.委托人身份 === '其它') ? (tmData.委托人身份其他 || '______') : tmData.委托人身份;
+            let trademarkHtml = '';
+            if (tmData.商标类型 === '其它') {
+                const list = tmData.otherTrademarkList || [];
+                if (list.length === 0) trademarkHtml = '<span class="underline-field">______</span>';
+                else {
+                    const parts = list.map(item => `第${item.regNum || '______'}号“${item.name || '______'}”(${item.class || '______'}类)`);
+                    trademarkHtml = parts.map(p => `<span class="underline-field">${p}</span>`).join('、');
+                }
+            } else trademarkHtml = `<span class="underline-field">${tmData.商标类型}</span>`;
+            const half = Math.ceil(trademarkIssuesList.length / 2);
+            let leftItems = [], rightItems = [];
+            trademarkIssuesList.forEach((item, idx) => {
+                const mark = tmData.事宜[item.key] ? '☑' : '□';
+                const isChecked = tmData.事宜[item.key];
+                let labelHtml;
+                if (item.key === 'item38' && isChecked) labelHtml = `<span class="item-label">其他: <span class="underline-field">${tmData.otherText || '______'}</span></span>`;
+                else labelHtml = `<span class="item-label">${item.label.replace(/<br>/g, '<br>')}</span>`;
+                const itemHtml = `<div style="display:flex; align-items:flex-start; gap:6px; margin:6px 0;"><span style="width:18px;">${mark}</span> ${labelHtml}</div>`;
+                if (idx < half) leftItems.push(`<td style="border:none; padding:4px 8px 4px 0; vertical-align:top;">${itemHtml}</td>`);
+                else rightItems.push(`<td style="border:none; padding:4px 8px 4px 0; vertical-align:top;">${itemHtml}</td>`);
+            });
+            while (leftItems.length < rightItems.length) leftItems.push('<td style="border:none;"> </td>');
+            while (rightItems.length < leftItems.length) rightItems.push('<td style="border:none;"> </td>');
+            const rows = leftItems.map((_, i) => `<tr>${leftItems[i]}${rightItems[i]}</tr>`).join('');
+            return `<div class="preview-doc"><div class="doc-title">商 标 代 理 委 托 书</div><p><strong>委托人</strong><span class="underline-field">${tmData.委托人名称}</span>是<span class="underline-field">${identityDisplay}</span>自然人/法人/其他组织，现委托<span class="underline-field">${tmData.代理机构}</span>代理${trademarkHtml}商标的如下"√"事宜。</p><table style="width:100%; border-collapse:collapse; margin:25px 0 10px;">${rows}</table><table class="signature-table"><tr><td style="width: 60%;"><div>委托人地址: <span style="font-weight:700; text-decoration:underline;">${tmData.委托人地址}</span></div><div style="margin-top: 12px;">联 系 人: <span style="font-weight:700; text-decoration:underline;">${tmData.联系人}</span></div><div style="margin-top: 12px;">电　　话: <span style="font-weight:700; text-decoration:underline;">${tmData.电话}</span></div><div style="margin-top: 12px;">邮政 编 码: <span style="font-weight:700; text-decoration:underline;">${tmData.邮政编码}</span></div></td><td style="width: 40%;"><div><span class="red-bold">委托人章戳: </span><span style="border-bottom:2px solid #000; display:inline-block; width:180px; font-weight:700;">　　　　　　　</span></div><div style="margin-top: 36px; text-align: right;"><span class="underline-field">${tmData.签章日期}</span></div></td></tr></table></div>`;
+        }
+        function renderCopyrightForm() { return '<div class="form-card">版权表单（略）</div>'; }
+        function renderCopyrightPreview() { return '<div class="preview-doc">版权预览（略）</div>'; }
+
+        // ========== 转让证明表单 (已移除日期输入框) ==========
+        function renderAssignForm() {
+            const list = assignData.trademarkList || [];
+            let rows = '';
+            list.forEach((item, idx) => {
+                rows += `
+                    <div class="other-tm-row" data-index="${idx}">
+                        <input type="text" class="assign-reg" placeholder="注册号" value="${item.regNum || ''}" data-index="${idx}" data-field="regNum">
+                        <input type="text" class="assign-name" placeholder="商标名称" value="${item.name || ''}" data-index="${idx}" data-field="name">
+                        <input type="text" class="assign-class" placeholder="类别" value="${item.class || ''}" data-index="${idx}" data-field="class">
+                        <button class="remove-btn" data-index="${idx}" type="button">✕</button>
+                    </div>
+                `;
+            });
+            const totalCount = list.length;
+            return `
+                <div class="form-card">
+                    <div class="form-grid">
+                        <div><div class="field-label">转让人</div><input type="text" id="assign_assignor" value="${assignData.assignor}"></div>
+                        <div><div class="field-label">受让人</div><input type="text" id="assign_assignee" value="${assignData.assignee}"></div>
+                    </div>
+                    <div style="margin-top:24px;">
+                        <div class="field-label" style="display:flex; justify-content:space-between; align-items:center;">
+                            <span>📌 转让商标明细 (注册号/商标名/类别)</span>
+                            <span class="total-badge">总件数: ${totalCount}</span>
+                        </div>
+                        ${rows}
+                        <button class="add-btn" id="addAssignTmBtn" type="button">➕ 添加商标</button>
+                    </div>
+                    <p style="color:#6c7a8d; font-size:0.9rem; margin-top:20px;">* 预览时将自动生成“第XXX号'名称'(X类)”格式，并用顿号连接。</p>
+                </div>
+            `;
+        }
+
+        // ========== 转让证明预览 (段首两个空格，合并为一段) ==========
+        function renderAssignPreview() {
+            const list = assignData.trademarkList || [];
+            const total = list.length;
+            let trademarkParts = list.map(item => {
+                const reg = item.regNum || '______';
+                const name = item.name || '______';
+                const cls = item.class || '______';
+                return `第${reg}号“${name}”(${cls}类)`;
+            });
+            const trademarkStr = trademarkParts.join('、');
+            const today = getSystemDate();
+            return `
+                <div class="preview-doc">
+                    <div class="doc-title">同 意 转 让 证 明</div>
+                    <p><span class="underline-field">转让人</span>：<span class="underline-field">${assignData.assignor}</span></p>
+                    <p><span class="underline-field">受让人</span>：<span class="underline-field">${assignData.assignee}</span></p>
+                    <!-- 两个空格用 &ensp;&ensp; 实现，商标列表与前后文字无换行 -->
+                    <p>&ensp;&ensp;兹证明，上列双方经协商，一致同意将转让人的<span class="underline-field">${trademarkStr}</span>（共<span class="underline-field">${total}</span>件）商标转让给受让人。</p>
+                    <table style="width:100%; margin-top:40px; border-collapse:collapse;">
+                        <tr>
+                            <td style="width:50%; border:none; vertical-align:top;">
+                                <div>转让人：<span style="border-bottom:2px solid #000; display:inline-block; width:200px;">　　　　　　　</span></div>
+                                <div style="margin-top:16px;">（章戳、签字）</div>
+                                <div style="margin-top:36px;"><span class="underline-field">${today}</span></div>
+                            </td>
+                            <td style="width:50%; border:none; vertical-align:top;">
+                                <div>受让人：<span style="border-bottom:2px solid #000; display:inline-block; width:200px;">　　　　　　　</span></div>
+                                <div style="margin-top:16px;">（章戳、签字）</div>
+                                <div style="margin-top:36px;"><span class="underline-field">${today}</span></div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            `;
+        }
+
+        // 统一绑定表单监听
+        function attachFormListeners() {
+            if (currentModule === 'trademark') {
+                // 商标代理委托书监听 (原样保留，略写但实际运行代码已包含)
+                const nameInp = document.getElementById('tm_name');
+                if (nameInp) nameInp.addEventListener('input', e => tmData.委托人名称 = e.target.value);
+                const identitySelect = document.getElementById('tm_identity');
+                if (identitySelect) identitySelect.addEventListener('change', e => { tmData.委托人身份 = e.target.value; renderPanel(); });
+                const identityOther = document.getElementById('tm_identity_other');
+                if (identityOther) identityOther.addEventListener('input', e => tmData.委托人身份其他 = e.target.value);
+                const agentInp = document.getElementById('tm_agent');
+                if (agentInp) agentInp.addEventListener('input', e => tmData.代理机构 = e.target.value);
+                const typeSelect = document.getElementById('tm_type');
+                if (typeSelect) typeSelect.addEventListener('change', e => { tmData.商标类型 = e.target.value; if (tmData.商标类型 === '其它') { if (!tmData.otherTrademarkList || tmData.otherTrademarkList.length===0) tmData.otherTrademarkList=[{regNum:'',name:'',class:''}]; } else tmData.otherTrademarkList=[]; renderPanel(); });
+                const addrInp = document.getElementById('tm_addr');
+                if (addrInp) addrInp.addEventListener('input', e => { tmData.委托人地址 = e.target.value; tmData.邮政编码 = guessZipFromAddress(tmData.委托人地址); const zipInp = document.getElementById('tm_zip'); if(zipInp) zipInp.value = tmData.邮政编码; });
+                const contactInp = document.getElementById('tm_contact');
+                if (contactInp) contactInp.addEventListener('input', e => tmData.联系人 = e.target.value);
+                const phoneInp = document.getElementById('tm_phone');
+                if (phoneInp) phoneInp.addEventListener('input', e => tmData.电话 = e.target.value);
+                const zipInp = document.getElementById('tm_zip');
+                if (zipInp) zipInp.addEventListener('input', e => tmData.邮政编码 = e.target.value);
+                const otherTextInp = document.getElementById('tm_other_text');
+                if (otherTextInp) otherTextInp.addEventListener('input', e => tmData.otherText = e.target.value);
+                document.querySelectorAll('.other-tm-row input').forEach(inp => { inp.addEventListener('input', e => { const idx = e.target.dataset.index; const field = e.target.dataset.field; if (idx!==undefined && field && tmData.otherTrademarkList && tmData.otherTrademarkList[idx]) tmData.otherTrademarkList[idx][field] = e.target.value; }); });
+                document.querySelectorAll('.remove-btn').forEach(btn => { btn.addEventListener('click', e => { e.preventDefault(); const idx = e.target.dataset.index; if (idx!==undefined && tmData.otherTrademarkList) { tmData.otherTrademarkList.splice(idx,1); if (tmData.otherTrademarkList.length===0) tmData.otherTrademarkList.push({regNum:'',name:'',class:''}); renderPanel(); } }); });
+                const addBtn = document.getElementById('addOtherTmBtn');
+                if (addBtn) addBtn.addEventListener('click', e => { e.preventDefault(); if (!tmData.otherTrademarkList) tmData.otherTrademarkList=[]; tmData.otherTrademarkList.push({regNum:'',name:'',class:''}); renderPanel(); });
+                document.querySelectorAll('#tm-issues-group input[type=checkbox]').forEach(cb => { cb.addEventListener('change', e => { const key = e.target.dataset.issueKey; if (key) { tmData.事宜[key] = e.target.checked; if (key==='item38' && !e.target.checked) tmData.otherText=''; renderPanel(); } }); });
+                const searchInput = document.getElementById('tm_issue_search');
+                if (searchInput) { searchInput.addEventListener('input', function(e) { const keyword = e.target.value.trim().toLowerCase(); const items = document.querySelectorAll('#tm-issues-group .checkbox-item'); items.forEach(item => { const span = item.querySelector('span'); const text = span ? span.textContent.toLowerCase() : ''; const match = keyword === '' || text.includes(keyword); if (match) { item.style.display = ''; const next = item.nextElementSibling; if (next && next.classList.contains('other-input')) next.style.display = ''; } else { item.style.display = 'none'; const next = item.nextElementSibling; if (next && next.classList.contains('other-input')) next.style.display = 'none'; } }); }); }
+            } else if (currentModule === 'copyright') {
+                // 版权监听略
+            } else if (currentModule === 'assign') {
+                const assignorInp = document.getElementById('assign_assignor');
+                if (assignorInp) assignorInp.addEventListener('input', e => assignData.assignor = e.target.value);
+                const assigneeInp = document.getElementById('assign_assignee');
+                if (assigneeInp) assigneeInp.addEventListener('input', e => assignData.assignee = e.target.value);
+                document.querySelectorAll('.other-tm-row input').forEach(inp => {
+                    inp.addEventListener('input', e => {
+                        const idx = e.target.dataset.index;
+                        const field = e.target.dataset.field;
+                        if (idx !== undefined && field && assignData.trademarkList && assignData.trademarkList[idx]) {
+                            assignData.trademarkList[idx][field] = e.target.value;
+                        }
+                    });
+                });
+                document.querySelectorAll('.remove-btn').forEach(btn => {
+                    btn.addEventListener('click', e => {
+                        e.preventDefault();
+                        const idx = e.target.dataset.index;
+                        if (idx !== undefined && assignData.trademarkList) {
+                            assignData.trademarkList.splice(idx, 1);
+                            if (assignData.trademarkList.length === 0) {
+                                assignData.trademarkList.push({ regNum: '', name: '', class: '' });
+                            }
+                            renderPanel();
+                        }
+                    });
+                });
+                const addBtn = document.getElementById('addAssignTmBtn');
+                if (addBtn) {
+                    addBtn.addEventListener('click', e => {
+                        e.preventDefault();
+                        if (!assignData.trademarkList) assignData.trademarkList = [];
+                        assignData.trademarkList.push({ regNum: '', name: '', class: '' });
+                        renderPanel();
+                    });
+                }
+            }
+        }
+
+        // ========== 下载Word (支持商标及转让证明) ==========
+        async function downloadWord() {
+            if (currentModule === 'trademark') {
+                // 商标下载 (完整功能保留)
+                const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, BorderStyle, AlignmentType, UnderlineType } = docx;
+                const BODY_FONT = "SimSun"; const BODY_SIZE = 24; const TITLE_SIZE = 32;
+                function buildTrademarkTextRuns() {
+                    if (tmData.商标类型 === '其它') {
+                        const list = tmData.otherTrademarkList || [];
+                        if (list.length === 0) return [new TextRun({ text: '______', underline: { type: UnderlineType.SINGLE }, font: BODY_FONT, size: BODY_SIZE })];
+                        const runs = [];
+                        for (let i=0; i<list.length; i++) {
+                            const item = list[i];
+                            runs.push(new TextRun({ text: `第${item.regNum||'______'}号“${item.name||'______'}”(${item.class||'______'}类)`, underline: { type: UnderlineType.SINGLE }, font: BODY_FONT, size: BODY_SIZE }));
+                            if (i<list.length-1) runs.push(new TextRun({ text: '、', font: BODY_FONT, size: BODY_SIZE }));
+                        }
+                        return runs;
+                    } else {
+                        return [new TextRun({ text: tmData.商标类型, underline: { type: UnderlineType.SINGLE }, font: BODY_FONT, size: BODY_SIZE })];
+                    }
+                }
+                function buildDescriptionChildren() {
+                    const base = [ new TextRun({ text: '委托人', font: BODY_FONT, size: BODY_SIZE }), new TextRun({ text: tmData.委托人名称, underline: { type: UnderlineType.SINGLE }, font: BODY_FONT, size: BODY_SIZE }), new TextRun({ text: '是', font: BODY_FONT, size: BODY_SIZE }), new TextRun({ text: tmData.委托人身份, underline: { type: UnderlineType.SINGLE }, font: BODY_FONT, size: BODY_SIZE }), new TextRun({ text: '自然人/法人/其他组织，现委托', font: BODY_FONT, size: BODY_SIZE }), new TextRun({ text: tmData.代理机构, underline: { type: UnderlineType.SINGLE }, font: BODY_FONT, size: BODY_SIZE }), new TextRun({ text: '代理', font: BODY_FONT, size: BODY_SIZE }) ];
+                    const trademarkRuns = buildTrademarkTextRuns();
+                    const tail = [ new TextRun({ text: '商标的如下"√"事宜。', font: BODY_FONT, size: BODY_SIZE }) ];
+                    return [...base, ...trademarkRuns, ...tail];
+                }
+                function createIssueCell(item) {
+                    if (!item) return new TableCell({ children: [new Paragraph('')] });
+                    const isChecked = tmData.事宜[item.key] || false;
+                    const mark = isChecked ? '☑' : '□';
+                    let text = item.label.replace(/<br>/g, '');
+                    let runs;
+                    if (item.key === 'item38' && isChecked) {
+                        runs = [ new TextRun({ text: '☑ 其他: ', bold: true, underline: { type: UnderlineType.SINGLE }, font: BODY_FONT, size: BODY_SIZE }), new TextRun({ text: tmData.otherText||'______', underline: { type: UnderlineType.SINGLE }, bold: true, font: BODY_FONT, size: BODY_SIZE }) ];
+                    } else if (item.key === 'item38' && !isChecked) {
+                        runs = [ new TextRun({ text: '□ 其他', font: BODY_FONT, size: BODY_SIZE }) ];
+                    } else {
+                        runs = [ new TextRun({ text: mark + ' ', bold: isChecked, underline: isChecked ? { type: UnderlineType.SINGLE } : undefined, font: BODY_FONT, size: BODY_SIZE }), new TextRun({ text, bold: isChecked, underline: isChecked ? { type: UnderlineType.SINGLE } : undefined, font: BODY_FONT, size: BODY_SIZE }) ];
+                    }
+                    return new TableCell({ children: [ new Paragraph({ children: runs, spacing: { before:0, after:0 } }) ] });
+                }
+                const half = Math.ceil(trademarkIssuesList.length / 2);
+                const leftItems = trademarkIssuesList.slice(0, half);
+                const rightItems = trademarkIssuesList.slice(half);
+                const rows = [];
+                const maxRows = Math.max(leftItems.length, rightItems.length);
+                for (let i=0; i<maxRows; i++) {
+                    rows.push(new TableRow({ children: [ createIssueCell(leftItems[i]), createIssueCell(rightItems[i]) ] }));
+                }
+                const issuesTable = new Table({ rows, width: { size: 100, type: docx.WidthType.PERCENTAGE }, borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE }, insideHorizontal: { style: BorderStyle.NONE }, insideVertical: { style: BorderStyle.NONE } } });
+                const leftCell = new TableCell({ children: [ new Paragraph(''), new Paragraph(''), new Paragraph({ children: [ new TextRun('委托人地址: '), new TextRun({ text: tmData.委托人地址, underline: { type: UnderlineType.SINGLE }, font: BODY_FONT, size: BODY_SIZE }) ] }), new Paragraph({ children: [ new TextRun('联 系 人: '), new TextRun({ text: tmData.联系人, underline: { type: UnderlineType.SINGLE }, font: BODY_FONT, size: BODY_SIZE }) ] }), new Paragraph({ children: [ new TextRun('电　　话: '), new TextRun({ text: tmData.电话, underline: { type: UnderlineType.SINGLE }, font: BODY_FONT, size: BODY_SIZE }) ] }), new Paragraph({ children: [ new TextRun('邮政 编 码: '), new TextRun({ text: tmData.邮政编码, underline: { type: UnderlineType.SINGLE }, font: BODY_FONT, size: BODY_SIZE }) ] }) ] });
+                const rightCell = new TableCell({ children: [ new Paragraph(''), new Paragraph(''), new Paragraph({ children: [ new TextRun({ text: '委托人章戳: ', bold: true, color: 'FF0000', font: BODY_FONT, size: BODY_SIZE }), new TextRun({ text: '____________________', bold: true, font: BODY_FONT, size: BODY_SIZE }) ] }), new Paragraph({ alignment: AlignmentType.RIGHT, children: [ new TextRun({ text: tmData.签章日期, underline: { type: UnderlineType.SINGLE }, font: BODY_FONT, size: BODY_SIZE }) ] }) ] });
+                const signatureTable = new Table({ rows: [ new TableRow({ children: [ leftCell, rightCell ] }) ], borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE }, insideHorizontal: { style: BorderStyle.NONE }, insideVertical: { style: BorderStyle.NONE } } });
+                const doc = new Document({ sections: [{ properties: {}, children: [ new Paragraph({ alignment: AlignmentType.CENTER, children: [ new TextRun({ text: '商 标 代 理 委 托 书', bold: true, font: BODY_FONT, size: TITLE_SIZE }) ] }), new Paragraph({ spacing: { before:0, after:0 }, children: buildDescriptionChildren() }), new Paragraph(''), issuesTable, signatureTable ] }] });
+                const blob = await Packer.toBlob(doc); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = `${tmData.委托人名称}-商标代理委托书${getSystemDate().replace(/年|月|日/g, '')}.docx`; link.click(); URL.revokeObjectURL(link.href);
+            } else if (currentModule === 'assign') {
+                // 转让证明下载 (合并为一段，段首两个空格)
+                const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, BorderStyle, AlignmentType, UnderlineType } = docx;
+                const BODY_FONT = "SimSun"; const BODY_SIZE = 24; const TITLE_SIZE = 32;
+                const list = assignData.trademarkList || [];
+                const total = list.length;
+                let trademarkRuns = [];
+                list.forEach((item, i) => {
+                    const reg = item.regNum || '______';
+                    const name = item.name || '______';
+                    const cls = item.class || '______';
+                    trademarkRuns.push(new TextRun({ text: `第${reg}号“${name}”(${cls}类)`, underline: { type: UnderlineType.SINGLE }, font: BODY_FONT, size: BODY_SIZE }));
+                    if (i < list.length - 1) trademarkRuns.push(new TextRun({ text: '、', font: BODY_FONT, size: BODY_SIZE }));
+                });
+                const today = getSystemDate();
+                // 合并段落：两个空格 + 兹证明 ... 转让人 + 商标列表 + （共X件）商标转让给受让人。
+                const mainParagraphChildren = [
+                    new TextRun({ text: '  ', font: BODY_FONT, size: BODY_SIZE }), // 两个空格
+                    new TextRun({ text: '兹证明，上列双方经协商，一致同意将转让人的', font: BODY_FONT, size: BODY_SIZE }),
+                    ...trademarkRuns,
+                    new TextRun({ text: `（共`, font: BODY_FONT, size: BODY_SIZE }),
+                    new TextRun({ text: String(total), underline: { type: UnderlineType.SINGLE }, font: BODY_FONT, size: BODY_SIZE }),
+                    new TextRun({ text: `件）商标转让给受让人。`, font: BODY_FONT, size: BODY_SIZE })
+                ];
+                const doc = new Document({
+                    sections: [{
+                        properties: {},
+                        children: [
+                            new Paragraph({ alignment: AlignmentType.CENTER, children: [ new TextRun({ text: '同 意 转 让 证 明', bold: true, font: BODY_FONT, size: TITLE_SIZE }) ] }),
+                            new Paragraph({ children: [ new TextRun({ text: '转让人', font: BODY_FONT, size: BODY_SIZE }), new TextRun({ text: '：', font: BODY_FONT, size: BODY_SIZE }), new TextRun({ text: assignData.assignor, underline: { type: UnderlineType.SINGLE }, font: BODY_FONT, size: BODY_SIZE }) ] }),
+                            new Paragraph({ children: [ new TextRun({ text: '受让人', font: BODY_FONT, size: BODY_SIZE }), new TextRun({ text: '：', font: BODY_FONT, size: BODY_SIZE }), new TextRun({ text: assignData.assignee, underline: { type: UnderlineType.SINGLE }, font: BODY_FONT, size: BODY_SIZE }) ] }),
+                            new Paragraph({ children: mainParagraphChildren }),
+                            new Paragraph(''),
+                            new Table({
+                                rows: [ new TableRow({ children: [
+                                    new TableCell({ children: [ new Paragraph({ children: [ new TextRun({ text: '转让人：', font: BODY_FONT, size: BODY_SIZE }), new TextRun({ text: '____________________', font: BODY_FONT, size: BODY_SIZE }) ] }), new Paragraph({ children: [ new TextRun({ text: '（章戳、签字）', font: BODY_FONT, size: BODY_SIZE }) ] }), new Paragraph({ alignment: AlignmentType.LEFT, children: [ new TextRun({ text: today, underline: { type: UnderlineType.SINGLE }, font: BODY_FONT, size: BODY_SIZE }) ] }) ] }),
+                                    new TableCell({ children: [ new Paragraph({ children: [ new TextRun({ text: '受让人：', font: BODY_FONT, size: BODY_SIZE }), new TextRun({ text: '____________________', font: BODY_FONT, size: BODY_SIZE }) ] }), new Paragraph({ children: [ new TextRun({ text: '（章戳、签字）', font: BODY_FONT, size: BODY_SIZE }) ] }), new Paragraph({ alignment: AlignmentType.LEFT, children: [ new TextRun({ text: today, underline: { type: UnderlineType.SINGLE }, font: BODY_FONT, size: BODY_SIZE }) ] }) ] })
+                                ] }) ],
+                                borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE }, insideHorizontal: { style: BorderStyle.NONE }, insideVertical: { style: BorderStyle.NONE } },
+                            })
+                        ]
+                    }]
+                });
+                const blob = await Packer.toBlob(doc);
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `商标同意转让证明_${assignData.assignor}_${today.replace(/年|月|日/g, '')}.docx`;
+                link.click();
+                URL.revokeObjectURL(link.href);
+            } else {
+                alert('该模块暂不支持下载');
+            }
+        }
+
+        // 导航事件
+        navTrademark.addEventListener('click', () => {
+            currentModule = 'trademark';
+            currentSubTab = 'form';
+            setActiveNav('trademark');
+            renderSubTabs();
+            renderPanel();
+        });
+        navAssign.addEventListener('click', () => {
+            currentModule = 'assign';
+            currentSubTab = 'form';
+            setActiveNav('assign');
+            renderSubTabs();
+            renderPanel();
+        });
+        navCopyright.addEventListener('click', () => {
+            currentModule = 'copyright';
+            currentSubTab = 'form';
+            setActiveNav('copyright');
+            renderSubTabs();
+            renderPanel();
+        });
+
+        // 初始化
+        setActiveNav('trademark');
+        renderSubTabs();
+        renderPanel();
+    })();
+</script>
+</body>
+</html>
